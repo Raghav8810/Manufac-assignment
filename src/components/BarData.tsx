@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import * as echarts from 'echarts';
 import { cropYields } from '../config/AgriculterData';
 
@@ -9,66 +9,65 @@ import { cropYields } from '../config/AgriculterData';
  * @returns {JSX.Element} A div containing the bar chart.
  */
 export const BarData = () => {
-    // Reference to the chart container
     const chartRef = useRef<HTMLDivElement>(null);
 
+    // Memoize the chart options to avoid recalculating on every render
+    const chartOptions = useMemo(() => ({
+        title: {
+            text: 'Average Crop Yields (1950-2020)',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        xAxis: {
+            type: 'category',
+            data: cropYields.map(item => item.crop),
+            name: 'Crop',
+            axisLabel: {
+                rotate: 45
+            }
+        },
+        yAxis: {
+            type: 'value',
+            name: 'Average Yield (Kg/Ha)'
+        },
+        series: [
+            {
+                data: cropYields.map(item => item.averageYield),
+                type: 'bar'
+            }
+        ]
+    }), []);
+
     useEffect(() => {
-        // Ensure the chartRef is available
         if (!chartRef.current) return;
 
+        // Initialize the chart only once
         const chart = echarts.init(chartRef.current);
-        // Define the chart options
-        const option = {
-            title: {
-                text: 'Average Crop Yields (1950-2020)',
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'shadow'
-                }
-            },
-            xAxis: {
-                type: 'category',
-                data: cropYields.map(item => item.crop),
-                name: 'Crop', // Label for x-axis
-                axisLabel: {
-                    rotate: 45
-                }
-            },
-            yAxis: {
-                type: 'value',
-                name: 'Average Yield (Kg/Ha)' // Label for y-axis
-            },
-            series: [
-                {
-                    data: cropYields.map(item => item.averageYield),
-                    type: 'bar'
-                }
-            ]
-        };
+
         // Set the options to the chart
-        chart.setOption(option);
-        // Handle window resize to adjust chart size
-        const handleResize = () => {
+        chart.setOption(chartOptions);
+
+        // Automatically resize the chart on container resize
+        const observer = new ResizeObserver(() => {
             chart.resize();
-        };
+        });
 
-        // Add event listener for window resize
-        window.addEventListener('resize', handleResize);
+        // Observe the chart container
+        observer.observe(chartRef.current);
 
-        // Cleanup function to dispose of the chart and remove event listener
+        // Cleanup function
         return () => {
             chart.dispose();
-            window.removeEventListener('resize', handleResize);
+            observer.disconnect();
         };
-    }, []);
+    }, [chartOptions]);
 
     return (
-        <>
-        
-        <div ref={chartRef} style={{ width: '100%', height: '400px', background: "#FDF7F4", }} />
-        </>
+        <div ref={chartRef} style={{ width: '100%', height: '400px', background: "#FDF7F4" }} />
     );
 };
