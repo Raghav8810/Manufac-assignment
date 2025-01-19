@@ -1,5 +1,17 @@
 import { AgricultureData } from '../config/AgriculterData';
 
+// Define the structure for the crop yields
+export interface cropYields {
+    crop: string;
+    averageYield: number;
+}
+
+export interface YearlyData {
+    year: string;
+    maxCrop: string;
+    minCrop: string;
+}
+
 /**
  * Utility function to calculate the average yield for a given array of crops.
  * 
