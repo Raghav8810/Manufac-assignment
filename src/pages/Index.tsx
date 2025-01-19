@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { Container, Title, Space } from '@mantine/core';
 import DataTable from '../components/DataTable';
 import {BarData} from '../components/BarData';
